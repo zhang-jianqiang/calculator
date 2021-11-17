@@ -15,6 +15,7 @@ import (
 
 type calc struct {
 	equation string
+	reset    bool
 
 	output  *widget.Label
 	buttons map[string]*widget.Button
@@ -27,10 +28,18 @@ func (c *calc) display(newtext string) {
 }
 
 func (c *calc) character(char rune) {
+	if c.reset {
+		c.clear()
+		c.reset = false
+	}
 	c.display(c.equation + string(char))
 }
 
 func (c *calc) digit(d int) {
+	if c.reset {
+		c.clear()
+		c.reset = false
+	}
 	c.character(rune(d) + '0')
 }
 
@@ -39,6 +48,8 @@ func (c *calc) clear() {
 }
 
 func (c *calc) evaluate() {
+	// 标记已经点过=或按过enter
+	c.reset = true
 	expression, err := govaluate.NewEvaluableExpression(c.output.Text)
 	if err == nil {
 		result, err := expression.Evaluate(nil)
@@ -144,7 +155,7 @@ func (c *calc) loadUI(app fyne.App) {
 	c.window.Canvas().SetOnTypedKey(c.onTypedKey)
 	c.window.Canvas().AddShortcut(&fyne.ShortcutCopy{}, c.onCopyShortcut)
 	c.window.Canvas().AddShortcut(&fyne.ShortcutPaste{}, c.onPasteShortcut)
-	c.window.Resize(fyne.NewSize(200, 300))
+	c.window.Resize(fyne.NewSize(250, 300))
 	c.window.Show()
 }
 
